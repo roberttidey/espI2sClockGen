@@ -14,12 +14,16 @@ A clock and pulse generator using the I2S interface on an esp8266
 - OTA software update
 - Uses a special I2s library (i2sTXcircular) giving flexible control
 
-## Build
+## Build and use
 - Install i2sTXcircular library (included)
 - Install BaseSupport library (https://github.com/roberttidey/BaseSupport)
 - Needs WifiManager library
-- Edit passwords in BaseConfig.handling
+- Edit passwords in BaseConfig.h
 - Compile and upload in Arduino environment
+- Set up wifi network management by connecting to AP and browsing to 192.168.4.1
+- upload basic set of files from data folder using STA ip/upload
+- further uploads can then be done using ip/edit
+- normal interface is at ip/
 
 
 
