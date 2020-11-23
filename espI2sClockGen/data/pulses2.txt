@@ -1,0 +1,19 @@
+#pulse waveform definition file
+#
+#clock rate first parameter is clock rate in Hz if second parameter negative
+#clock rate set by 2 dividers from 160MHz if second parameter positive
+16
+10
+#Buffer Size (32b words)
+512
+#OneShot 0 continuous, 1 = once
+0
+#pulseFormat type controls format of pulse definition records
+0
+#Only type 0 defined so far
+#pulse definition records
+# markBits, spaceBits, repeat
+# if repeat missing or 0 then this definition fills the rest of the buffers
+# total bit count in defintion records should fill buffers exactly to give smooth overall repetition.
+8,8,512
+2,30,0

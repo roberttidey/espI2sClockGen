@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--Import Google Icon Font-->
+		<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<!--Import materialize.css-->
+		<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css" media="screen,projection" />
+
+		<!--Let browser know website is optimized for mobile-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+		<meta charset="utf-8"/>
+		<title>Esp Clock Gen</title>
+	</head>
+
+	<body>
+		<header>
+			<div class="awTitle">Esp Clock Gen</div>
+		</header>
+		<div class="container" id="events">
+			<div class="row">
+				<div class = "col s12">
+					<ul class = "tabs">
+						<li class = "tab col s6"><a class = "active" href = "#clock">Clock</a></li>
+						<li class = "tab col s6"><a href = "#pulses">Pulses</a></li>
+					</ul>
+				</div>
+				<div id = "clock" class = "tab col s12">
+					<div class="input-field col s6">
+					  <input value="31250" id="targetHz" type="text">
+					  <label class="active" for="targetHz">Target Clock (Hz)</label>
+					</div>
+					<div class="input-field col s6">
+					  <input value="50" id="dutycycle" type="text">
+					  <label class="active" for="dutycycle">Duty Cycle</label>
+					</div>
+					<div class="input-field col s6">
+					  <input value="0" id="tolerance" type="text">
+					  <label class="active" for="ckError">tolerance %</label>
+					</div>
+					<div class="input-field col s6">
+					  <input disabled value="31250 (0%)" id="actualCk" type="text">
+					  <label class="active" for="actualCk">Actual Clock</label>
+					</div>
+					<div class="header"><span>+ Advanced</span></div>
+					<div class="content">
+						<div class="input-field col s6">
+						  <input value="1000000" id="Hz" type="text">
+						  <label class="active" for="Hz">Bit Clock (Hz)</label>
+						</div>
+						<div class="input-field col s6">
+						  <input value="0" id="oneshot" type="text">
+						  <label class="active" for="oneshot">One Shot</label>
+						</div>
+						<div class="input-field col s6">
+						  <input value="16" id="markbits" type="text">
+						  <label class="active" for="markbits">Mark Bits</label>
+						</div>
+						<div class="input-field col s6">
+						  <input value="16" id="spacebits" type="text">
+						  <label class="active" for="spacebits">Space Bits</label>
+						</div>
+						<div class="input-field col s6">
+						  <input value="512" id="count32" type="text">
+						  <label class="active" for="count32">Buffer Size (32b words)</label>
+						</div>
+						<div class="input-field col s6">
+						  <input disabled value="32" id="tBits" type="text">
+						  <label class="active" for="tBits">Bits per Clock</label>
+						</div>
+						<div class="input-field col s6">
+						  <input value="40" id="div1" type="text">
+						  <label class="active" for="div1">div1</label>
+						</div>
+						<div class="input-field col s6">
+						  <input value="4" id="div2" type="text">
+						  <label class="active" for="div2">div2</label>
+						</div>
+					</div>
+					<a class="btn green" id="setclock" style="width:240px;height:24px"> Generate Clock</a>&nbsp 
+				</div>
+				<div id = "pulses" class = "tab col s12">
+					<h5>Pulse Files</h5>
+					<div id = "pulsefilesTable" class = "tab col s12"></div>
+				</div>
+			</div> 
+		</div>
+		<style type="text/css">
+			.btn_grid {
+				margin: 3px 0;
+			}
+			.btn {
+				height: 28px;
+				line-height: 28px;
+			}
+			.awTitle {
+				display:inline-block;
+				font-size: x-large;
+				padding-left:20px;
+				width:200px;
+			}
+			header {
+				position:absolute;
+				top:0px;
+				left:0px;
+				height:32px;
+				right:0px;
+				overflow:hidden;
+				background:red;
+				color:white;
+			}
+			td {
+				height:32px;
+				width:200px;
+				padding:0px;
+			}
+			.container {
+				position:absolute;
+				top:32px;
+				bottom:0px;
+				left:10px;
+				right:60px;
+				overflow-y:auto;
+				overflow-x:hidden;
+			}
+			.container .header {
+				background-color:#d3d3d3;
+				padding: 2px;
+				cursor: pointer;
+				font-weight: bold;
+			}
+			.container .content {
+				display: none;
+				padding : 5px;
+			}
+			.tab {
+				overflow-x:hidden;
+			}
+			#actualCk {
+				 color: red;
+			}
+		</style>
+	
+		<!--Import jQuery before materialize.js-->
+		<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+		<script type="text/javascript">(function($){
+$(function(){
+	var host = window.location.hostname;
+	var pulseFile = "";
+	var pulseFileList;
+	var calcState = 0;
+	
+	// ******************************************************************
+	// init()
+	// ******************************************************************
+	function init() {
+		getFileList();
+		loadPulseFiles();
+	}
+		
+	function getFileList() {
+		$.get("http://" + host + "/getpulsefiles", function(data) {
+			if (data.endsWith("<BR>")) data = data.substring(0, data.length-4);
+			pulseFileList = data.split("<BR>");
+		});
+	}
+	
+	function loadFileList() {
+		var selectEl = $('#filelist');
+		if(selectEl) {
+			selectEl.empty();
+			var list = '';
+			var selected;
+			for (var j = 0; j < (pulseFileList.length - 1); j++){
+				if(pulseFileList[j] == pulseFile)
+					selected = ' selected ';
+				else
+					selected = '';
+				list += '<option value="' +pulseFileList[j] + '"></option>';
+			}
+			selectEl.html(list);
+		}
+	}
+
+	function loadPulseFiles() {
+		// Load PulseFiles
+		$.get("http://" + host + "/getpulsefiles", function(data) {
+			var host = window.location.hostname;
+			if (data.endsWith("<BR>")) data = data.substring(0, data.length-4);
+			pulseList = data.split("<BR>");
+			var pulsefilesTable_html = '<table id="pulseFiles"><thead><tr>';
+			var i;
+			var pulseList = [];
+			pulsefilesTable_html += '</thead></tr><tbody>';
+			if(data.length) {
+				pulseList = data.split("<BR>");
+				for(i=0; i < pulseList.length; i++) {
+					if(pulseList[i] != "") {
+						pulsefilesTable_html += '<tr><td><a href="http://' + host + '/' + pulseList[i] + '">' + pulseList[i] + '</a></td>'
+						pulsefilesTable_html += '<td><a name="' + pulseList[i] + '" class="btn green" id="sendPulseFile" style="width:200px;height:24px">Generate Pulses</a></td></tr>';
+					}
+				}
+			}
+			pulsefilesTable_html += '</table>';
+			$('#pulsefilesTable').html(pulsefilesTable_html);
+		});
+	}
+	
+	// ******************************************************************
+	// Actions
+	// ******************************************************************	
+	$("#clock").on("click", "#setclock", function() {
+		var btn = $(this);
+		setClock();
+	});
+	
+	$("#clock").on("input", "#targetHz", function() {
+		calculateClock();
+		calculateDutyCycle();
+	});
+
+	$("#clock").on("input", "#tolerance", function() {
+		calculateClock();
+		calculateDutyCycle();
+	});
+
+	$("#clock").on("input", "#dutycycle", function() {
+		calculateDutyCycle();
+	});
+	
+	function setClock() {
+		/*if(calcState) {
+			calculateClock();
+			calculateDutyCycle();
+			calcState = 0;
+		}*/
+		var Hz = document.getElementById('Hz').value;
+		var markbits = document.getElementById('markbits').value;
+		var spacebits = document.getElementById('spacebits').value;
+		var count32 = document.getElementById('count32').value;
+		var oneshot = document.getElementById('oneshot').value;
+		var clockDiv1 = document.getElementById('div1').value;
+		var div2 = document.getElementById('div2').value;
+		if(div2 <= 0) {
+			clockDiv1 = Hz;
+			div2 = -1;
+		}
+		$.get("http://" + host + "/setclock", {'clockDiv1':clockDiv1, 'div2':div2, 'markbits':markbits, 'spacebits':spacebits, 'count32':count32, 'oneshot':oneshot});
+	}
+
+	function calculateClock() {
+		var targetHz = document.getElementById('targetHz').value;
+		var tolerance = document.getElementById('tolerance').value;
+		var basefreq = 160000000;
+		var div1 = 1;
+		var div2 = 1;
+		var tB;
+		var deltaBest = basefreq;
+		var delta;
+		var tBits;
+		var i,j;
+		var scale = 1;
+		var Hz = targetHz;
+		
+		while(scale < 2048 && scale * targetHz < 10000) {
+			scale <<= 1;
+		}
+		Hz = scale * targetHz;
+		tolerance = Hz * tolerance / 100;
+		for (tBits = 2; tBits <= 32; tBits += 2) {
+			for (i=0; i<64 ; i++) {
+				for (j=i+1; j<64; j++) {
+					delta = Math.abs((basefreq/i/j/tBits) - Hz);
+					if (delta <= deltaBest || delta < tolerance) {
+						deltaBest = delta;
+						div1 = i;
+						div2 = j;
+						tB = tBits;
+					}
+				}
+			}
+		}
+		tB *= scale;
+		document.getElementById('Hz').value = Math.round(basefreq/div1/div2);
+		i = tB;
+		// strip out maximum power of 2
+		while(i > 2) {
+			if(i/2 != Math.floor(i/2))
+				break;
+			i /= 2;
+		}
+		// ensure 32 bit words
+		i <<= 5;
+		// scale up for minimum buffer storage
+		while(i < 128 || i < tB / 32) {
+			i <<= 1;
+		}
+		document.getElementById('count32').value = i;
+		document.getElementById('div1').value = div1;
+		document.getElementById('div2').value = div2;
+		i = Math.round(100*basefreq/div1/div2/tB)/100;
+		document.getElementById('actualCk').value = i + ' (' + Math.round(10000*(i - targetHz)/targetHz)/100 + '%)';
+		document.getElementById('tBits').value = tB;
+		calculateDutyCycle();
+	}
+
+	function calculateDutyCycle() {
+		var tB = document.getElementById('tBits').value
+		var dutycycle = document.getElementById('dutycycle').value;
+		var i;
+		
+		i = Math.round(tB*dutycycle/100);
+		if (i == 0) i++;
+		document.getElementById('markbits').value = i;
+		document.getElementById('spacebits').value = tB - i;
+	}
+
+	$("#pulses").on("click", "#sendPulseFile", function() {
+		var btn = $(this);
+		sendPulseFile(btn["0"].name);
+	});
+	
+	function sendPulseFile(filename) {
+		if(filename.length) {
+			$.get("http://" + host + "/sendpulses", {'filename':filename});
+		}
+	}
+
+	$(".header").click(function () {
+
+		$header = $(this);
+		//getting the next element
+		$content = $header.next();
+		
+		$content.toggle();
+	});
+	
+	// ******************************************************************
+	// main
+	// ******************************************************************
+	init();
+	
+}); // end of document ready
+})(jQuery); // end of jQuery name space</script>
+	</body>
+</html>
