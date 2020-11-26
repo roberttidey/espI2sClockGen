@@ -24,6 +24,11 @@ A clock and pulse generator using the I2S interface on an esp8266
 - upload basic set of files from data folder using STA ip/upload
 - further uploads can then be done using ip/edit
 - normal interface is at ip/
+- Set TargetHz and duty cycle to find best match
+- Advanced shows calculated parameters
+- Tolerance may be increased to find a match with most bits that meets tolerance
+- bitsPerWord may be entered to find match that uses this number per I2S word cycle
+- A range may be put in to bitsPerWord to allow searching e.g. 24,31
 
 
 

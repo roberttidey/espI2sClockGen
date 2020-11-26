@@ -38,8 +38,16 @@
 					  <label class="active" for="ckError">tolerance %</label>
 					</div>
 					<div class="input-field col s6">
-					  <input disabled value="31250 (0%)" id="actualCk" type="text">
+					  <input value="0" id="bitsPerWord" type="text">
+					  <label class="active" for="bitsPerWord">bits per word</label>
+					</div>
+					<div class="input-field col s6">
+					  <input disabled value="31250" id="actualCk" type="text">
 					  <label class="active" for="actualCk">Actual Clock</label>
+					</div>
+					<div class="input-field col s6">
+					  <input disabled value="0" id="ckError" type="text">
+					  <label class="active" for="ckError">Clock Error%</label>
 					</div>
 					<div class="header"><span>+ Advanced</span></div>
 					<div class="content">
@@ -138,6 +146,9 @@
 			#actualCk {
 				 color: red;
 			}
+			#ckError {
+				 color: red;
+			}
 		</style>
 	
 		<!--Import jQuery before materialize.js-->
@@ -224,6 +235,11 @@ $(function(){
 		calculateDutyCycle();
 	});
 
+	$("#clock").on("input", "#bitsPerWord", function() {
+		calculateClock();
+		calculateDutyCycle();
+	});
+	
 	$("#clock").on("input", "#dutycycle", function() {
 		calculateDutyCycle();
 	});
@@ -251,6 +267,7 @@ $(function(){
 	function calculateClock() {
 		var targetHz = document.getElementById('targetHz').value;
 		var tolerance = document.getElementById('tolerance').value;
+		var bitsPerWord = document.getElementById('bitsPerWord').value;
 		var basefreq = 160000000;
 		var div1 = 1;
 		var div2 = 1;
@@ -261,13 +278,37 @@ $(function(){
 		var i,j;
 		var scale = 1;
 		var Hz = targetHz;
+		var tBSplit;
+		var tBStart;
+		var tBEnd;
+		
+		if(bitsPerWord.indexOf(',') > 0) {
+			tBSplit = bitsPerWord.split(',');
+			tBStart = tBSplit[0] << 1;
+			if(tBSplit[0].length == 0) tBStart = 2;
+			if(tBSplit[1].length > 0) {
+				tBEnd = tBSplit[1] << 1;
+			} else {
+				tBEnd = tBStart;
+			}
+			if(tBStart == 0) tBStart = 2;
+			if(tBEnd < tBStart) tBEnd = tBStart;
+		} else {
+			if( isNaN(bitsPerWord) || bitsPerWord == 0) {
+				tBStart = 2;
+				tBEnd = 32;
+			} else {
+				tBStart = bitsPerWord << 1;
+				tBEnd = tBStart;
+			}
+		}
 		
 		while(scale < 2048 && scale * targetHz < 10000) {
 			scale <<= 1;
 		}
 		Hz = scale * targetHz;
 		tolerance = Hz * tolerance / 100;
-		for (tBits = 2; tBits <= 32; tBits += 2) {
+		for (tBits = tBStart; tBits <= tBEnd; tBits += 2) {
 			for (i=0; i<64 ; i++) {
 				for (j=i+1; j<64; j++) {
 					delta = Math.abs((basefreq/i/j/tBits) - Hz);
@@ -299,7 +340,8 @@ $(function(){
 		document.getElementById('div1').value = div1;
 		document.getElementById('div2').value = div2;
 		i = Math.round(100*basefreq/div1/div2/tB)/100;
-		document.getElementById('actualCk').value = i + ' (' + Math.round(10000*(i - targetHz)/targetHz)/100 + '%)';
+		document.getElementById('actualCk').value = i;
+		document.getElementById('ckError').value = Math.round(10000*(i - targetHz)/ targetHz)/100;
 		document.getElementById('tBits').value = tB;
 		calculateDutyCycle();
 	}
