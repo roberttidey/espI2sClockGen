@@ -225,7 +225,7 @@ float i2scGetRealBitClock() {
 }
 
 // set up parameters for i2scircular
-bool i2scInit(uint16_t count32, uint32_t clockDiv1, int16_t div2, uint16_t oneShot) {
+bool i2scInit(uint16_t count32, uint32_t clockDiv1, int16_t div2, uint16_t oneShot, uint16_t wLength) {
 	if(count32 > MAX_BUFFERDATA || count32 < 32) {
 		return false;
 	}
@@ -241,6 +241,8 @@ bool i2scInit(uint16_t count32, uint32_t clockDiv1, int16_t div2, uint16_t oneSh
 	slcBufRemainder = count32 - slcBufCnt * slcBufLen;
 	slcOneShot = oneShot;
 	i2scSetBitClock(clockDiv1, div2);
+	I2SC &=  ~(I2S_BITS_MOD << I2S_BITS_MOD_S);
+	I2SC |=  (wLength & I2S_BITS_MOD) << I2S_BITS_MOD_S;
 }
 
 //start up i2s, init and set clock before this
@@ -275,6 +277,7 @@ bool i2scBegin() {
 	I2SFC |= I2SDE; //Enable DMA
 	I2SCC &= ~((I2STXCMM << I2STXCM) | (I2SRXCMM << I2SRXCM)); //Set RX/TX CHAN_MOD=0
 	I2SC |= I2STXS; //Start transmission
+	debugVal[0] = I2SC;
 	return true;
 }
 

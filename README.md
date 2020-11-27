@@ -29,6 +29,7 @@ A clock and pulse generator using the I2S interface on an esp8266
 - Tolerance may be increased to find a match with most bits that meets tolerance
 - bitsPerWord may be entered to find match that uses this number per I2S word cycle
 - A range may be put in to bitsPerWord to allow searching e.g. 24,31
+- Word length (0-15) may be put into advanced section. This does not effect the clock but does change the word select signal to be from 16 - 31 bits of raw bit clock
 
 
 

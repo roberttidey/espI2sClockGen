@@ -83,6 +83,10 @@
 						  <input value="4" id="div2" type="text">
 						  <label class="active" for="div2">div2</label>
 						</div>
+						<div class="input-field col s6 offset-s6">
+						  <input value="0" id="wLength" type="text">
+						  <label class="active" for="wLength">wLength Field</label>
+						</div>
 					</div>
 					<a class="btn green" id="setclock" style="width:240px;height:24px"> Generate Clock</a>&nbsp 
 				</div>
@@ -159,7 +163,6 @@ $(function(){
 	var host = window.location.hostname;
 	var pulseFile = "";
 	var pulseFileList;
-	var calcState = 0;
 	
 	// ******************************************************************
 	// init()
@@ -245,11 +248,6 @@ $(function(){
 	});
 	
 	function setClock() {
-		/*if(calcState) {
-			calculateClock();
-			calculateDutyCycle();
-			calcState = 0;
-		}*/
 		var Hz = document.getElementById('Hz').value;
 		var markbits = document.getElementById('markbits').value;
 		var spacebits = document.getElementById('spacebits').value;
@@ -257,11 +255,12 @@ $(function(){
 		var oneshot = document.getElementById('oneshot').value;
 		var clockDiv1 = document.getElementById('div1').value;
 		var div2 = document.getElementById('div2').value;
+		var wLength = document.getElementById('wLength').value;
 		if(div2 <= 0) {
 			clockDiv1 = Hz;
 			div2 = -1;
 		}
-		$.get("http://" + host + "/setclock", {'clockDiv1':clockDiv1, 'div2':div2, 'markbits':markbits, 'spacebits':spacebits, 'count32':count32, 'oneshot':oneshot});
+		$.get("http://" + host + "/setclock", {'clockDiv1':clockDiv1, 'div2':div2, 'markbits':markbits, 'spacebits':spacebits, 'count32':count32, 'oneshot':oneshot, 'wLength':wLength});
 	}
 
 	function calculateClock() {

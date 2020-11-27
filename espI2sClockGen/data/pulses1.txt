@@ -8,6 +8,8 @@
 512
 #OneShot 0 continuous, 1 = once
 0
+#Word Length field 0-15
+0
 #pulseFormat type controls format of pulse definition records
 0
 #Only type 0 defined so far

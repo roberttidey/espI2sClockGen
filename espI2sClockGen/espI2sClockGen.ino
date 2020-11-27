@@ -38,6 +38,7 @@ void setPulses(String filename) {
 	int config = 0;
 	uint16_t count32 = 512;
 	uint16_t oneShot = 0;
+	uint16_t wLength = 0;
 	uint16_t bufIx = 0;
 	uint32_t clockDiv1 = 1000000;
 	int16_t div2 = -1;
@@ -53,10 +54,11 @@ void setPulses(String filename) {
 					case 0: clockDiv1 = line.toInt();break;
 					case 1: div2 = line.toInt();break;
 					case 2: count32 = line.toInt();break;
-					case 3: oneShot = line.toInt();
-							i2scInit(count32, clockDiv1, div2, oneShot);
+					case 3: oneShot = line.toInt(); break;
+					case 4: wLength = line.toInt();
+							i2scInit(count32, clockDiv1, div2, oneShot, wLength);
 							break;
-					case 4: pulseFormat = line.toInt();
+					case 5: pulseFormat = line.toInt();
 							break;
 					default : 
 						switch(pulseFormat) {
@@ -98,7 +100,10 @@ void handleSetClock() {
 	uint16_t oneShot = server.arg("oneshot").toInt();
 	uint32_t clockDiv1 = server.arg("clockDiv1").toInt();
 	int16_t div2 = server.arg("div2").toInt();
-	i2scInit(count32, clockDiv1, div2, oneShot);
+	int16_t wLength = server.arg("wLength").toInt();
+	Serial.println("wl " + wLength);
+	Serial.println("I2SC " + String(i2scGetDebugVal(0)));
+	i2scInit(count32, clockDiv1, div2, oneShot, wLength);
 	i2scSetMSArrayItem(0, markBits, spaceBits, 0);
 	i2scBegin();
 	ret = "Hz = " + String(i2scGetRealBitClock());
@@ -124,7 +129,7 @@ void extraHandlers() {
 }
 
 void setupEnd() {
-	i2scInit(512, 1000000, -1, 0);
+	i2scInit(512, 1000000, -1, 0, 0);
 	i2scSetMSArrayItem(0, 16, 16, 0);
 	i2scBegin();
 }

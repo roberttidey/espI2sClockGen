@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-bool i2scInit(uint16_t count32, uint32_t clockDiv1, int16_t div2, uint16_t oneShot);
+bool i2scInit(uint16_t count32, uint32_t clockDiv1, int16_t div2, uint16_t oneShot, uint16_t wLength);
 bool i2scBegin();
 void i2scEnd();
 void i2scSetBitClock(uint32_t clockDiv1, int16_t div2);
