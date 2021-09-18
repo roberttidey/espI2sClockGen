@@ -111,7 +111,7 @@ void handleSetClock() {
 	server.send(200, "text/html", ret);
 }
 
-void handleSetPulses() {
+void handleSendPulses() {
 	String filename = server.arg("filename");
 	if(filename.charAt(0) != '/') filename = "/" + filename;
 	setPulses(filename);
@@ -124,7 +124,7 @@ void setupStart() {
 // add any extra webServer handlers here
 void extraHandlers() {
 	server.on("/setclock", handleSetClock);
-	server.on("/setpulses", handleSetPulses);
+	server.on("/sendpulses", handleSendPulses);
 	server.on("/getpulsefiles", handleGetPulseFiles);
 }
 

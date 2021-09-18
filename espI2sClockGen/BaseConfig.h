@@ -28,7 +28,9 @@ const char* update_password = "password";
 //call any extra setup at end
 #define SETUP_END 1
 
-// comment out this define unless using modified WifiManager with fast connect support
-#define FASTCONNECT true
+
+// uncomment out this define if using modified WifiManager with fast connect support
+// Then use true if you want fastconnect or false if not
+//#define FASTCONNECT true
 
 #include "BaseSupport.h"
